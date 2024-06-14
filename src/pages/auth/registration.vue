@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 const authStore = useAuthStore();
 
 definePage({
-    name: 'sign-in',
+    name: 'registration',
     meta: {
         middleware: 'guest',
         layout: 'AuthLayout'
@@ -21,8 +21,18 @@ definePage({
 const formSchema = toTypedSchema(
     z.object({
         username: z.string().min(2).max(50),
-        password: z.string().min(2).max(50)
-    })
+        email: z.string().email(),
+        password: z.string().min(4),
+        password_confirmation: z.string().min(4),
+    }).refine(
+      (values) => {
+        return values.password === values.password_confirmation;
+      },
+      {
+        message: "Passwords must match!",
+        path: ["password_confirmation"],
+      }
+    )
 );
 
 const form = useForm({
@@ -30,14 +40,13 @@ const form = useForm({
 });
 
 const onSubmit = form.handleSubmit((values) => {
-    return authStore.login(values);
+    return authStore.registration(values);
 });
 </script>
 
 <template>
     <div class="grid gap-2 text-center">
-        <h1 class="text-3xl font-bold">Login</h1>
-        <p class="text-balance text-muted-foreground">Enter your email below to login to your account</p>
+        <h1 class="text-3xl font-bold">Create account</h1>
     </div>
     <div class="grid gap-4">
         <form @submit="onSubmit">
@@ -47,6 +56,16 @@ const onSubmit = form.handleSubmit((values) => {
                     <FormLabel>Username</FormLabel>
                     <FormControl>
                         <Input type="text" v-bind="componentField" />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+            </FormField>
+
+            <FormField v-slot="{ componentField }" name="email">
+                <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                        <Input type="email" v-bind="componentField" />
                     </FormControl>
                     <FormMessage />
                 </FormItem>
@@ -62,11 +81,22 @@ const onSubmit = form.handleSubmit((values) => {
                 </FormItem>
             </FormField>
 
+            <FormField v-slot="{ componentField }" name="password_confirmation">
+                <FormItem>
+                    <FormLabel>Password Confirmation</FormLabel>
+                    <FormControl>
+                        <Input type="password" v-bind="componentField" />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+            </FormField>
+
             <Button type="submit" class="w-full my-4"> Submit </Button>
         </form>
     </div>
     <div class="mt-4 text-center text-sm">
-        Don't have an account?
-        <RouterLink :to="{ name: 'registration'}"> Sign up </RouterLink>
+        Already have an account?
+        <RouterLink :to="{ name: 'sign-in'}"> Sign up </RouterLink>
+
     </div>
 </template>
